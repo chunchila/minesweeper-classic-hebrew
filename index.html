@@ -1,0 +1,18 @@
+<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"><title>שולה מוקשים</title><style>*{box-sizing:border-box;margin:0}body{background:#0b1020;color:#fff;font-family:system-ui,Arial,sans-serif;display:flex;flex-direction:column;align-items:center;min-height:100vh;touch-action:manipulation;user-select:none}h1{font-size:22px;margin:12px 0 4px}#hud{display:flex;gap:18px;margin:6px;font-size:18px}canvas{background:#111936;border-radius:12px;max-width:96vw;box-shadow:0 0 30px #4af3}button{background:#38bdf8;border:0;border-radius:10px;padding:10px 20px;font-size:17px;font-weight:700;margin:8px;cursor:pointer}p{opacity:.7;font-size:14px;margin:4px}#g{display:grid;gap:2px;margin:10px}.t{width:34px;height:34px;background:#334;border-radius:5px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;cursor:pointer}.t.o{background:#1c2547;cursor:default}.t.m{background:#c33}select{font-size:16px;padding:6px}</style></head><body>
+<h1>💣 שולה מוקשים</h1><div id="hud"><span>מוקשים: <b id="m">0</b></span><span>זמן: <b id="tm">0</b></span><select id="lv"><option value="0">קל 8x8</option><option value="1">בינוני 10x10</option><option value="2">קשה 12x12</option></select></div>
+<div id="g"></div><p>לחיצה = חשיפה · לחיצה ארוכה / קליק ימני = דגל</p><button id="mode">מצב: חשיפה</button><button id="r">משחק חדש</button>
+<script>
+const CF=[[8,10],[10,18],[12,30]];let N,M,cells,first,done,flags,timer,secs,flagMode=false;const cols=['','#38bdf8','#4ade80','#f87171','#a78bfa','#fb923c','#2dd4bf','#fff','#999'];
+function init(){[N,M]=CF[+lv.value];cells=[];for(let i=0;i<N*N;i++)cells.push({m:0,o:0,f:0,n:0});first=true;done=false;flags=0;clearInterval(timer);secs=0;tm.textContent=0;m.textContent=M;draw();g.style.gridTemplateColumns=`repeat(${N},34px)`}
+function nb(i){const r=[],y=i/N|0,xx=i%N;for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){if(!dx&&!dy)continue;const a=y+dy,b=xx+dx;if(a>=0&&a<N&&b>=0&&b<N)r.push(a*N+b)}return r}
+function place(s){let k=0;while(k<M){const i=Math.random()*N*N|0;if(cells[i].m||i==s||nb(s).includes(i))continue;cells[i].m=1;k++}cells.forEach((c,i)=>c.n=nb(i).filter(j=>cells[j].m).length)}
+function open(i){const c=cells[i];if(c.o||c.f)return;c.o=1;if(c.m){lose();return}if(!c.n)nb(i).forEach(open)}
+function lose(){done=true;clearInterval(timer);cells.forEach(c=>{if(c.m)c.o=1});setTimeout(()=>alert('💥 בום! נסו שוב'),50)}
+function click(i,flag){if(done)return;if(flag||flagMode){const c=cells[i];if(!c.o){c.f=!c.f;flags+=c.f?1:-1;m.textContent=M-flags}draw();return}
+ if(first){place(i);first=false;timer=setInterval(()=>tm.textContent=++secs,1000)}open(i);
+ if(!done&&cells.every(c=>c.o||c.m)){done=true;clearInterval(timer);draw();setTimeout(()=>alert('🏆 ניצחתם ב-'+secs+' שניות!'),50)}draw()}
+function draw(){g.innerHTML='';cells.forEach((c,i)=>{const d=document.createElement('div');d.className='t'+(c.o?' o':'')+(c.o&&c.m?' m':'');
+ d.textContent=c.o?(c.m?'💣':(c.n||'')):(c.f?'🚩':'');if(c.o&&c.n)d.style.color=cols[c.n];
+ d.onclick=()=>click(i,false);d.oncontextmenu=e=>{e.preventDefault();click(i,true)};let pt;d.ontouchstart=()=>{pt=setTimeout(()=>{pt=null;click(i,true)},450)};d.ontouchend=e=>{if(pt===null){e.preventDefault()}clearTimeout(pt)};g.appendChild(d)})}
+mode.onclick=()=>{flagMode=!flagMode;mode.textContent='מצב: '+(flagMode?'דגל':'חשיפה')};r.onclick=init;lv.onchange=init;init();
+</script></body></html>
